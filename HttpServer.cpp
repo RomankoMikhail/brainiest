@@ -1,5 +1,6 @@
 #include "HttpServer.h"
 #include "HttpRequest.h"
+#include "HttpResponse.h"
 
 HttpServer::HttpServer(QObject *parent) : QObject(parent)
 {
@@ -67,13 +68,14 @@ void HttpServer::onReadyRead()
 
     qDebug() << "Access: " << http.getAccessPath();
 
-    QTextStream os(socket);
-    os.autoDetectUnicode();
+    HttpResponse response;
 
-    os << "HTTP/1.0 200 Ok\r\n"
-          "Content-Type: text/html; charset=\"utf-8\"\r\n"
-          "\r\n"
-          "<h1>Hello world!</h1>\r\n";
+    response.setReturnCode(200);
+    response.setHeader("Content-Type", "text/html; charset=\"utf-8\"");
+    response.setData("<h1>Hello world!</h1><h2>Are you impressed</h2>");
+
+    socket->write(response.form());
+    qDebug() << response.form();
 
     socket->close();
 }

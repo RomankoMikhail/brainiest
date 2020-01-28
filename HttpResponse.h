@@ -1,17 +1,16 @@
-#ifndef HTTP_H
-#define HTTP_H
+#ifndef HTTPRESPONSE_H
+#define HTTPRESPONSE_H
 
 #include <QMap>
 #include <QObject>
 
-class HttpRequest : public QObject
+class HttpResponse : public QObject
 {
     Q_OBJECT
 public:
-    explicit HttpRequest(QObject *parent = nullptr);
-    explicit HttpRequest(const QByteArray &data, QObject *parent = nullptr);
+    explicit HttpResponse(QObject *parent = nullptr);
 
-    bool parse(const QByteArray &data);
+    QByteArray form();
 
     QList<QString> headers() const;
     QString getHeader(const QString &headerName) const;
@@ -19,17 +18,20 @@ public:
     void removeHeader(const QString &headerName);
     void clearHeaders();
 
-    QString getAccessPath() const;
-    QString getAccessMethod() const;
+    int getReturnCode() const;
+    void setReturnCode(int returnCode);
+
+    QByteArray getData() const;
+    void setData(const QByteArray &data);
 
 signals:
 
 public slots:
 
 private:
-    QString mAccessMethod;
-    QString mAccessPath;
+    QByteArray mData;
+    int mReturnCode;
     QMap<QString, QString> mHeaders;
 };
 
-#endif // HTTP_H
+#endif // HTTPRESPONSE_H

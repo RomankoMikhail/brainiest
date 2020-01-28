@@ -2,16 +2,20 @@
 
 #include "HttpServer.h"
 
-int main(int argc, char *argv[]) {
-  QCoreApplication a(argc, argv);
+int main(int argc, char *argv[])
+{
+    QCoreApplication a(argc, argv);
 
-  HttpServer server;
+    HttpServer server;
 
-  if (server.listen(QHostAddress::LocalHost)) {
-    qDebug() << "Server listening on default port";
-  } else {
-    a.exit(-1);
-  }
+    if (server.listen(QHostAddress::LocalHost))
+    {
+        qDebug() << "Server listening on default port";
+    }
+    else
+    {
+        a.exit(-1);
+    }
 
-  return a.exec();
+    return a.exec();
 }

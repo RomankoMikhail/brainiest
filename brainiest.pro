@@ -18,7 +18,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
     HttpServer.cpp \
-    HttpRequest.cpp
+    HttpRequest.cpp \
+    HttpResponse.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -27,4 +28,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 HEADERS += \
     HttpServer.h \
-    HttpRequest.h
+    HttpRequest.h \
+    HttpResponse.h

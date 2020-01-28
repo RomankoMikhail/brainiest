@@ -1,6 +1,7 @@
 #include "HttpRequest.h"
 #include <QDebug>
 #include <QRegExp>
+#include <QVariant>
 
 HttpRequest::HttpRequest(QObject *parent) : QObject(parent)
 {
@@ -69,6 +70,17 @@ QString HttpRequest::getHeader(const QString &headerName) const
 void HttpRequest::setHeader(const QString &headerName, const QVariant &headerValue)
 {
     mHeaders[headerName.trimmed()] = headerValue.toString().trimmed();
+}
+
+void HttpRequest::removeHeader(const QString &headerName)
+{
+    if (mHeaders.contains(headerName))
+        mHeaders.remove(headerName);
+}
+
+void HttpRequest::clearHeaders()
+{
+    mHeaders.clear();
 }
 
 QString HttpRequest::getAccessPath() const
