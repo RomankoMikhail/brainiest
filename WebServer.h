@@ -4,16 +4,20 @@
 #include <QObject>
 #include <QTcpServer>
 #include <QTcpSocket>
+#include "Http.h"
 
-class HttpServer : public QObject
+class WebServer : public QObject
 {
     Q_OBJECT
 public:
-    explicit HttpServer(QObject *parent = nullptr);
-    ~HttpServer();
+    explicit WebServer(QObject *parent = nullptr);
+    ~WebServer();
 
     bool listen(const QHostAddress &address, const quint16 &port = 8080);
     void closeConnections();
+
+    qint64 maxRequestSize() const;
+    void setMaxRequestSize(const qint64 &maxRequestSize);
 
 private slots:
     void onNewConnection();
@@ -21,9 +25,20 @@ private slots:
     void onReadyRead();
 
 private:
+    enum Protocols {
+        ProtocolHttp,
+        ProtocolWebSocket
+    };
+
+    void httpRequest(QTcpSocket *socket);
+    void webSocketRequest(QTcpSocket *socket);
+
+
+
     QMap<QString, QFunctionPointer> mPaths;
     QVector<QTcpSocket *> mClientSockets;
     QTcpServer mTcpServer;
+    qint64 mMaxRequestSize = 10485760; // 10 Mb
 };
 
 #endif // HTTPSERVER_H

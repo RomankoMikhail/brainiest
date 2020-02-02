@@ -1,12 +1,12 @@
 #include <QCoreApplication>
 
-#include "HttpServer.h"
+#include "WebServer.h"
 
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
-    HttpServer server;
+    WebServer server;
 
     if (server.listen(QHostAddress::LocalHost))
     {
