@@ -5,10 +5,9 @@
 
 WebSocketFrame::WebSocketFrame()
 {
-
 }
 
-QByteArray WebSocketFrame::toByteArray()
+QByteArray WebSocketFrame::toByteArray(bool useMask)
 {
     QByteArray array;
     QDataStream dataStream(&array, QIODevice::WriteOnly);
@@ -17,10 +16,13 @@ QByteArray WebSocketFrame::toByteArray()
     quint8 header[2] = {0, 0};
 
     header[0] = static_cast<char>(isFinalFrame()) << 7 | (static_cast<char>(opcode()) & 0x0F);
-    header[1] = 1 << 7;
+
+    if (useMask)
+        header[1] = 1 << 7;
+
     dataStream << header[0];
 
-    if(mData.size() <= 125)
+    if (mData.size() <= 125)
     {
         header[1] |= mData.size() & 0x7F;
         dataStream << header[1];
@@ -38,15 +40,18 @@ QByteArray WebSocketFrame::toByteArray()
         dataStream << static_cast<quint64>(mData.size());
     }
 
-    /*quint32 mask = QRandomGenerator().generate();*/
     quint32 mask = 0;
 
-    dataStream << mask;
+    if (useMask)
+    {
+        mask = QRandomGenerator().generate();
+        dataStream << mask;
+    }
 
     int maskPosition = 0;
-    quint8 *byteMask = reinterpret_cast<quint8*>(&mask);
+    quint8 *byteMask = reinterpret_cast<quint8 *>(&mask);
 
-    for(auto byte : mData)
+    for (auto byte : mData)
     {
         array.push_back(byte ^ byteMask[maskPosition]);
 

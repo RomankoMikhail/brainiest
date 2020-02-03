@@ -1,11 +1,11 @@
 #ifndef HTTPSERVER_H
 #define HTTPSERVER_H
 
+#include "Http.h"
+#include "WebSocketParser.h"
 #include <QObject>
 #include <QTcpServer>
 #include <QTcpSocket>
-#include "Http.h"
-#include "WebSocketParser.h"
 
 class WebServer : public QObject
 {
@@ -25,17 +25,17 @@ private slots:
     void onDisconnect();
     void onReadyRead();
 
-    void onWebSocketFrameParsed(WebSocketFrame frame);
+    void onWebSocketFrameParsed(QTcpSocket *socket, WebSocketFrame frame);
+
 private:
-    enum Protocols {
+    enum Protocols
+    {
         ProtocolHttp,
         ProtocolWebSocket
     };
 
     void httpRequest(QTcpSocket *socket);
     void webSocketRequest(QTcpSocket *socket);
-
-
 
     QMap<QString, QFunctionPointer> mPaths;
     QVector<QTcpSocket *> mClientSockets;

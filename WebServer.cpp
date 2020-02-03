@@ -1,11 +1,11 @@
 #include "WebServer.h"
 #include "Http.h"
 
+#include <QCryptographicHash>
 #include <QDir>
 #include <QFileInfo>
 #include <QMimeDatabase>
 #include <QMimeType>
-#include <QCryptographicHash>
 
 bool isPathInDirectory(const QString &filePath, const QString &directoryPath)
 {
@@ -101,28 +101,19 @@ void WebServer::onReadyRead()
     }
 }
 
-void WebServer::onWebSocketFrameParsed(WebSocketFrame frame)
+void WebServer::onWebSocketFrameParsed(QTcpSocket *socket, WebSocketFrame frame)
 {
-    qDebug() << "Is Final Frame?: " <<  frame.isFinalFrame();
-    qDebug() << "Opcode: " <<  frame.opcode();
-    qDebug() << "Payload data: " <<  frame.data();
+    qDebug() << "Is Final Frame?: " << frame.isFinalFrame();
+    qDebug() << "Opcode: " << frame.opcode();
+    qDebug() << "Payload data: " << frame.data();
 
     WebSocketFrame returnFrame;
     returnFrame.setOpcode(WebSocketFrame::OpcodeText);
-    returnFrame.setData(QString("Hello world!").toUtf8());
+    returnFrame.setData(frame.data());
     returnFrame.setIsFinalFrame(true);
 
-    WebSocketParser *parser = dynamic_cast<WebSocketParser*>(sender());
-    if(parser == nullptr)
-        return;
-
-    QTcpSocket *socket = dynamic_cast<QTcpSocket*>(parser->parent());
-    if(socket == nullptr)
-        return;
-
-    qDebug() << returnFrame.toByteArray().toHex(' ');
-
     socket->write(returnFrame.toByteArray());
+
     socket->flush();
 }
 
@@ -145,7 +136,7 @@ void WebServer::httpRequest(QTcpSocket *socket)
         return;
     }
 
-    socket->read(requestRequestSize);
+    socket->skip(requestRequestSize);
 
     QStringList listOfCookies;
     QStringList listOfConnectionOptions;
@@ -173,7 +164,7 @@ void WebServer::httpRequest(QTcpSocket *socket)
     if (request.getAccessMethod() == Http::MethodUnknown)
         response.defaultCodeResponse(Http::CodeNotImplemented);
 
-    bool shouldSocketBeClosed = true;
+    bool shouldSocketBeClosed  = true;
     bool shouldSwitchProtocols = false;
 
     if (listOfConnectionOptions.contains("Keep-Alive", Qt::CaseInsensitive))
@@ -190,21 +181,24 @@ void WebServer::httpRequest(QTcpSocket *socket)
             if (request.getFieldValue("Sec-WebSocket-Version").toInt() == 13)
             {
                 QString magicString = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-                QString stringKey = request.getFieldValue("Sec-WebSocket-Key") + magicString;
+                QString stringKey   = request.getFieldValue("Sec-WebSocket-Key") + magicString;
 
-                QByteArray resultOfHash = QCryptographicHash::hash(stringKey.toUtf8(), QCryptographicHash::Sha1);
+                QByteArray resultOfHash =
+                    QCryptographicHash::hash(stringKey.toUtf8(), QCryptographicHash::Sha1);
                 QString acceptString = resultOfHash.toBase64();
 
                 response.addFieldValue("Sec-WebSocket-Accept", acceptString);
                 response.addFieldValue("Connection", "Upgrade");
                 response.addFieldValue("Upgrade", "websocket");
                 response.setHttpCode(Http::CodeSwitchingProtocols);
+                response.setData(QByteArray());
 
                 shouldSwitchProtocols = true;
-                shouldSocketBeClosed = false;
+                // shouldSocketBeClosed = false;
 
-                WebSocketParser * parser = new WebSocketParser(socket);
-                connect(parser, &WebSocketParser::frameReady, this, &WebServer::onWebSocketFrameParsed);
+                WebSocketParser *parser = new WebSocketParser(socket);
+                connect(parser, &WebSocketParser::frameReady, this,
+                        &WebServer::onWebSocketFrameParsed);
             }
         }
     }
@@ -229,7 +223,7 @@ void WebServer::httpRequest(QTcpSocket *socket)
 
                 file.open(QIODevice::ReadOnly);
 
-                if(file.isOpen())
+                if (file.isOpen())
                 {
                     response.setHttpCode(Http::CodeOk);
                     response.addFieldValue("content-type", db.mimeTypeForFile(path).name());
@@ -253,11 +247,11 @@ void WebServer::httpRequest(QTcpSocket *socket)
 
 void WebServer::webSocketRequest(QTcpSocket *socket)
 {
-    for(auto child : socket->children())
+    for (auto child : socket->children())
     {
-        WebSocketParser *parser = dynamic_cast<WebSocketParser*>(child);
+        WebSocketParser *parser = dynamic_cast<WebSocketParser *>(child);
 
-        if(parser == nullptr)
+        if (parser == nullptr)
             continue;
 
         qDebug() << "Should parse?";

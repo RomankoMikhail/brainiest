@@ -3,7 +3,6 @@
 
 WebSocketParser::WebSocketParser(QObject *parent) : QObject(parent)
 {
-
 }
 
 void WebSocketParser::parse(QIODevice *device)
@@ -37,14 +36,12 @@ void WebSocketParser::parse(QIODevice *device)
             break;
         }
 
-
-    }
-    while(mState != previousState);
+    } while (mState != previousState);
 }
 
 WebSocketParser::State WebSocketParser::readHeader(QIODevice *device)
 {
-    if(device->bytesAvailable() < 2)
+    if (device->bytesAvailable() < 2)
         return StateReadHeader;
 
     char header[2];
@@ -56,12 +53,12 @@ WebSocketParser::State WebSocketParser::readHeader(QIODevice *device)
 
     mCurrentFrame.setOpcode(static_cast<WebSocketFrame::WebSocketOpcode>(header[0] & 0x0F));
     mMask[0] = mMask[1] = mMask[2] = mMask[3] = (header[1] & 0x80) != 0;
-    mPayloadSize = (header[1] & 0x7F);
+    mPayloadSize                              = (header[1] & 0x7F);
 
-    if(mPayloadSize == 126)
+    if (mPayloadSize == 126)
         return StateReadPayload16Bit;
 
-    if(mPayloadSize == 127)
+    if (mPayloadSize == 127)
         return StateReadPayload64Bit;
 
     return StateReadMask;
@@ -69,7 +66,7 @@ WebSocketParser::State WebSocketParser::readHeader(QIODevice *device)
 
 WebSocketParser::State WebSocketParser::readPayloadSize16Bit(QIODevice *device)
 {
-    if(device->bytesAvailable() < 2)
+    if (device->bytesAvailable() < 2)
         return StateReadPayload16Bit;
 
     char length[2];
@@ -82,7 +79,7 @@ WebSocketParser::State WebSocketParser::readPayloadSize16Bit(QIODevice *device)
 
 WebSocketParser::State WebSocketParser::readPayloadSize64Bit(QIODevice *device)
 {
-    if(device->bytesAvailable() < 2)
+    if (device->bytesAvailable() < 2)
         return StateReadPayload64Bit;
 
     char length[8];
@@ -95,20 +92,20 @@ WebSocketParser::State WebSocketParser::readPayloadSize64Bit(QIODevice *device)
 
 WebSocketParser::State WebSocketParser::readMask(QIODevice *device)
 {
-    if(mMask[0] == 0)
+    if (mMask[0] == 0)
         return StateReadPayload;
 
-    if(device->bytesAvailable() < 4)
+    if (device->bytesAvailable() < 4)
         return StateReadMask;
 
-    device->read(reinterpret_cast<char*>(mMask), 4);
+    device->read(reinterpret_cast<char *>(mMask), 4);
 
     return StateReadPayload;
 }
 
 WebSocketParser::State WebSocketParser::readPayload(QIODevice *device)
 {
-    if(device->bytesAvailable() < mPayloadSize)
+    if (device->bytesAvailable() < mPayloadSize)
         return StateReadPayload;
 
     int maskPosition = 0;
@@ -116,7 +113,7 @@ WebSocketParser::State WebSocketParser::readPayload(QIODevice *device)
     QByteArray data;
     data.reserve(mPayloadSize);
 
-    for(quint64 i = 0; i < mPayloadSize; i++)
+    for (quint64 i = 0; i < mPayloadSize; i++)
     {
         char byte;
         device->read(&byte, 1);
@@ -128,7 +125,10 @@ WebSocketParser::State WebSocketParser::readPayload(QIODevice *device)
 
     mCurrentFrame.setData(data);
 
-    emit frameReady(mCurrentFrame);
+    QTcpSocket *socket = dynamic_cast<QTcpSocket*>(parent());
+
+    if(socket != nullptr)
+        emit frameReady(socket, mCurrentFrame);
 
     return StateReadHeader;
 }

@@ -9,16 +9,16 @@ public:
     enum WebSocketOpcode
     {
         OpcodeContinuation = 0x00,
-        OpcodeText = 0x01,
-        OpcodeBinary = 0x02,
-        OpcodeClose = 0x08,
-        OpcodePing = 0x09,
-        OpcodePong = 0x0A
+        OpcodeText         = 0x01,
+        OpcodeBinary       = 0x02,
+        OpcodeClose        = 0x08,
+        OpcodePing         = 0x09,
+        OpcodePong         = 0x0A
     };
 
     WebSocketFrame();
 
-    QByteArray toByteArray();
+    QByteArray toByteArray(bool useMask = false);
 
     bool isFinalFrame() const;
     void setIsFinalFrame(bool isFinalFrame);

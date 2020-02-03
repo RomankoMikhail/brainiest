@@ -1,10 +1,10 @@
 #ifndef WEBSOCKETPARSER_H
 #define WEBSOCKETPARSER_H
 
-#include <QObject>
-#include <WebSocketFrame.h>
 #include <QIODevice>
-
+#include <QObject>
+#include <QTcpSocket>
+#include <WebSocketFrame.h>
 
 class WebSocketParser : public QObject
 {
@@ -24,14 +24,13 @@ public:
     void parse(QIODevice *device);
 
 signals:
-    void frameReady(WebSocketFrame frame);
+    void frameReady(QTcpSocket *socket, WebSocketFrame frame);
 
 private:
     WebSocketFrame mCurrentFrame;
 
     quint64 mPayloadSize;
     quint8 mMask[4];
-
 
     State readHeader(QIODevice *device);
     State readPayloadSize16Bit(QIODevice *device);
