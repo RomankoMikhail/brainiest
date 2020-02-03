@@ -4,7 +4,7 @@
 #include <QIODevice>
 #include <QObject>
 #include <QTcpSocket>
-#include <WebSocketFrame.h>
+#include <WebSocketFrame.hpp>
 
 class WebSocketParser : public QObject
 {

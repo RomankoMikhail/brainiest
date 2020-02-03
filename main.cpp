@@ -1,6 +1,6 @@
 #include <QCoreApplication>
 
-#include "WebServer.h"
+#include "WebServer.hpp"
 
 int main(int argc, char *argv[])
 {

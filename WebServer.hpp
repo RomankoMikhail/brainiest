@@ -1,8 +1,8 @@
 #ifndef HTTPSERVER_H
 #define HTTPSERVER_H
 
-#include "Http.h"
-#include "WebSocketParser.h"
+#include "HttpParser.hpp"
+#include "WebSocketParser.hpp"
 #include <QObject>
 #include <QTcpServer>
 #include <QTcpSocket>
@@ -20,14 +20,24 @@ public:
     qint64 maxRequestSize() const;
     void setMaxRequestSize(const qint64 &maxRequestSize);
 
+
+    void upgradeToWebsocket(QTcpSocket *socket, const QString &webSocketKey, bool ieFix = false);
+
 private slots:
     void onNewConnection();
     void onDisconnect();
     void onReadyRead();
 
     void onWebSocketFrameParsed(QTcpSocket *socket, WebSocketFrame frame);
+    void onHttpPacketParsed(QTcpSocket *socket, HttpPacket packet);
 
 private:
+    struct SocketContext
+    {
+        WebSocketParser *webSocketParser = nullptr;
+        HttpParser *httpParser           = nullptr;
+    };
+
     enum Protocols
     {
         ProtocolHttp,
@@ -37,9 +47,9 @@ private:
     void httpRequest(QTcpSocket *socket);
     void webSocketRequest(QTcpSocket *socket);
 
-    QMap<QString, QFunctionPointer> mPaths;
-    QVector<QTcpSocket *> mClientSockets;
+    QMap<QTcpSocket *, SocketContext> mClientSockets;
     QTcpServer mTcpServer;
+
     qint64 mMaxRequestSize = 10485760; // 10 Mb
 };
 

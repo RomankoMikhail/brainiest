@@ -1,6 +1,6 @@
-#include "WebServer.h"
-#include "Http.h"
+#include "WebServer.hpp"
 
+#include "HttpParser.hpp"
 #include <QCryptographicHash>
 #include <QDir>
 #include <QFileInfo>
@@ -46,10 +46,12 @@ void WebServer::closeConnections()
 {
     mTcpServer.pauseAccepting();
 
-    for (auto socket : mClientSockets)
+    for (auto iterator = mClientSockets.begin(); iterator != mClientSockets.end(); ++iterator)
     {
-        socket->close();
+        iterator.key()->close();
     }
+
+    mClientSockets.clear();
 }
 
 bool WebServer::listen(const QHostAddress &address, const quint16 &port)
@@ -65,7 +67,12 @@ void WebServer::onNewConnection()
     connect(newSocket, &QTcpSocket::readyRead, this, &WebServer::onReadyRead);
 
     newSocket->setProperty("protocol", ProtocolHttp);
-    mClientSockets.push_back(newSocket);
+
+    SocketContext context;
+    context.httpParser = new HttpParser(newSocket);
+    connect(context.httpParser, &HttpParser::httpParsed, this, &WebServer::onHttpPacketParsed);
+
+    mClientSockets[newSocket] = context;
 }
 
 void WebServer::onDisconnect()
@@ -75,7 +82,19 @@ void WebServer::onDisconnect()
     if (socket == nullptr)
         return;
 
-    mClientSockets.removeOne(socket);
+    if (mClientSockets[socket].httpParser != nullptr)
+    {
+        disconnect(mClientSockets[socket].httpParser, &HttpParser::httpParsed, this,
+                   &WebServer::onHttpPacketParsed);
+    }
+
+    if (mClientSockets[socket].webSocketParser != nullptr)
+    {
+        disconnect(mClientSockets[socket].webSocketParser, &WebSocketParser::frameReady, this,
+                   &WebServer::onWebSocketFrameParsed);
+    }
+
+    mClientSockets.remove(socket);
 
     disconnect(socket, &QTcpSocket::disconnected, this, &WebServer::onDisconnect);
     disconnect(socket, &QTcpSocket::readyRead, this, &WebServer::onReadyRead);
@@ -88,25 +107,24 @@ void WebServer::onReadyRead()
     if (socket == nullptr)
         return;
 
+    SocketContext context = mClientSockets[socket];
+
     Protocols socketProtocol = static_cast<Protocols>(socket->property("protocol").toInt());
 
     switch (socketProtocol)
     {
     case ProtocolHttp:
-        httpRequest(socket);
+        context.httpParser->parse(socket, mMaxRequestSize);
         break;
+
     case ProtocolWebSocket:
-        webSocketRequest(socket);
+        context.webSocketParser->parse(socket);
         break;
     }
 }
 
 void WebServer::onWebSocketFrameParsed(QTcpSocket *socket, WebSocketFrame frame)
 {
-    qDebug() << "Is Final Frame?: " << frame.isFinalFrame();
-    qDebug() << "Opcode: " << frame.opcode();
-    qDebug() << "Payload data: " << frame.data();
-
     WebSocketFrame returnFrame;
     returnFrame.setOpcode(WebSocketFrame::OpcodeText);
     returnFrame.setData(frame.data());
@@ -117,131 +135,64 @@ void WebServer::onWebSocketFrameParsed(QTcpSocket *socket, WebSocketFrame frame)
     socket->flush();
 }
 
-void WebServer::httpRequest(QTcpSocket *socket)
+void WebServer::onHttpPacketParsed(QTcpSocket *socket, HttpPacket packet)
 {
-    QByteArray array = socket->peek(maxRequestSize());
+    static QMimeDatabase mimeDatabase;
 
-    Http request;
-    qint64 requestRequestSize = request.parseRequest(array);
+    HttpPacket response;
+    response.setMethod(packet.method());
+    response.setStatusCode(HttpPacket::CodeServiceUnavailable);
+    response.setMajor(1);
+    response.setMinor(1);
+    response.setMimeType(mimeDatabase.mimeTypeForName("text/html"));
 
-    if (requestRequestSize == 0)
-        return;
+    bool connectionKeepAlive = false;
 
-    if (requestRequestSize > maxRequestSize())
+    for (auto upgradeStrings : packet.getValue("upgrade"))
     {
-        Http response;
-        response.setHttpCode(Http::CodePayloadTooLarge);
-        socket->write(response.formResponse());
-        socket->close();
-        return;
-    }
-
-    socket->skip(requestRequestSize);
-
-    QStringList listOfCookies;
-    QStringList listOfConnectionOptions;
-    QStringList listOfUpgradeProtocols;
-    QStringList listOfAcceptedEncoding;
-
-    // Извлечь большую часть необходимой информации
-    listOfCookies           = request.getFieldValues("Cookie");
-    listOfUpgradeProtocols  = request.getFieldValue("Upgrade").split(",");
-    listOfConnectionOptions = request.getFieldValue("Connection").split(",");
-    listOfAcceptedEncoding  = request.getFieldValue("Accept-Encoding").split(",");
-
-    for (QString &value : listOfCookies)
-        value = value.trimmed();
-    for (QString &value : listOfUpgradeProtocols)
-        value = value.trimmed();
-    for (QString &value : listOfConnectionOptions)
-        value = value.trimmed();
-    for (QString &value : listOfAcceptedEncoding)
-        value = value.trimmed();
-
-    Http response;
-    response.defaultCodeResponse(Http::CodeNotFound);
-
-    if (request.getAccessMethod() == Http::MethodUnknown)
-        response.defaultCodeResponse(Http::CodeNotImplemented);
-
-    bool shouldSocketBeClosed  = true;
-    bool shouldSwitchProtocols = false;
-
-    if (listOfConnectionOptions.contains("Keep-Alive", Qt::CaseInsensitive))
-    {
-        response.appendFieldValue("Connection", "Keep-Alive");
-        shouldSocketBeClosed = false;
-    }
-
-    // Проверить является ли этот запрос на WebSocket
-    if (listOfConnectionOptions.contains("Upgrade", Qt::CaseInsensitive))
-    {
-        if (listOfUpgradeProtocols.contains("websocket", Qt::CaseInsensitive))
+        if (upgradeStrings.contains("websocket", Qt::CaseInsensitive))
         {
-            if (request.getFieldValue("Sec-WebSocket-Version").toInt() == 13)
-            {
-                QString magicString = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-                QString stringKey   = request.getFieldValue("Sec-WebSocket-Key") + magicString;
-
-                QByteArray resultOfHash =
-                    QCryptographicHash::hash(stringKey.toUtf8(), QCryptographicHash::Sha1);
-                QString acceptString = resultOfHash.toBase64();
-
-                response.addFieldValue("Sec-WebSocket-Accept", acceptString);
-                response.addFieldValue("Connection", "Upgrade");
-                response.addFieldValue("Upgrade", "websocket");
-                response.setHttpCode(Http::CodeSwitchingProtocols);
-                response.setData(QByteArray());
-
-                shouldSwitchProtocols = true;
-                // shouldSocketBeClosed = false;
-
-                WebSocketParser *parser = new WebSocketParser(socket);
-                connect(parser, &WebSocketParser::frameReady, this,
-                        &WebServer::onWebSocketFrameParsed);
-            }
+            qDebug() << "Upgrading!";
+            upgradeToWebsocket(socket, packet.getValue("Sec-WebSocket-Key").first(), true);
+            return;
         }
     }
 
-    if (!shouldSwitchProtocols)
+    for (auto connectionStrings : packet.getValue("connection"))
     {
-        if (response.getHttpCode() != Http::CodeNotImplemented)
+        if (connectionStrings.contains("keep-alive", Qt::CaseInsensitive))
         {
-            bool isNotRestrictedPath =
-                isPathInDirectory("webroot" + request.getAccessPath(), "webroot");
-
-            if (!isNotRestrictedPath)
-            {
-                response.defaultCodeResponse(Http::CodeForbidden);
-            }
-            else
-            {
-                static QMimeDatabase db;
-
-                QString path = "webroot" + request.getAccessPath();
-                QFile file(path);
-
-                file.open(QIODevice::ReadOnly);
-
-                if (file.isOpen())
-                {
-                    response.setHttpCode(Http::CodeOk);
-                    response.addFieldValue("content-type", db.mimeTypeForFile(path).name());
-                    response.setData(file.readAll());
-                }
-                else
-                    response.defaultCodeResponse(Http::CodeNotFound);
-            }
+            connectionKeepAlive = true;
+            response.setField("connection", "keep-alive");
         }
+    }
+
+    bool isNotRestrictedPath = isPathInDirectory("webroot" + packet.getUri(), "webroot");
+
+    if (!isNotRestrictedPath)
+    {
+        response.setStatusCode(HttpPacket::CodeForbidden);
     }
     else
     {
-        socket->setProperty("protocol", ProtocolWebSocket);
+        QString path = "webroot" + packet.getUri();
+        QFile file(path);
+
+        file.open(QIODevice::ReadOnly);
+
+        if (file.isOpen())
+        {
+            response.setStatusCode(HttpPacket::CodeOk);
+            response.setMimeType(mimeDatabase.mimeTypeForFile(path));
+            response.setData(file.readAll());
+        }
+        else
+            response.setStatusCode(HttpPacket::CodeNotFound);
     }
 
-    socket->write(response.formResponse());
+    socket->write(response.toByteArray());
 
-    if (shouldSocketBeClosed)
+    if (!connectionKeepAlive)
         socket->close();
 }
 
@@ -268,4 +219,35 @@ qint64 WebServer::maxRequestSize() const
 void WebServer::setMaxRequestSize(const qint64 &maxRequestSize)
 {
     mMaxRequestSize = maxRequestSize;
+}
+
+void WebServer::upgradeToWebsocket(QTcpSocket *socket, const QString &webSocketKey, bool ieFix)
+{
+    QString magicString = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+    QString stringKey   = webSocketKey + magicString;
+
+    QByteArray resultOfHash =
+        QCryptographicHash::hash(stringKey.toUtf8(), QCryptographicHash::Sha1);
+    QString acceptString = resultOfHash.toBase64();
+
+    HttpPacket response;
+
+    response.addValue("Sec-WebSocket-Accept", acceptString);
+    response.addValue("Connection", "Upgrade");
+
+    if (ieFix)
+        response.addValue("Upgrade", "Websocket");
+    else
+        response.addValue("Upgrade", "websocket");
+
+    response.setStatusCode(HttpPacket::CodeSwitchingProtocols);
+
+    mClientSockets[socket].webSocketParser = new WebSocketParser(socket);
+
+    connect(mClientSockets[socket].webSocketParser, &WebSocketParser::frameReady, this,
+            &WebServer::onWebSocketFrameParsed);
+
+    socket->setProperty("protocol", ProtocolWebSocket);
+
+    socket->write(response.toByteArray());
 }

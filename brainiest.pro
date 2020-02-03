@@ -19,8 +19,10 @@ SOURCES += \
     WebSocketFrame.cpp \
     WebSocketParser.cpp \
         main.cpp \
-    Http.cpp \
-    WebServer.cpp
+    WebServer.cpp \
+    HttpParser.cpp \
+    3rdparty/http-parser/http_parser.c \
+    HttpPacket.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -28,7 +30,9 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
-    Http.h \
-    WebServer.h \
-    WebSocketFrame.h \
-    WebSocketParser.h
+    3rdparty/http-parser/http_parser.h \
+    HttpParser.hpp \
+    WebServer.hpp \
+    WebSocketFrame.hpp \
+    WebSocketParser.hpp \
+    HttpPacket.h
