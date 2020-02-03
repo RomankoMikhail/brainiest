@@ -5,6 +5,7 @@
 #include <QFileInfo>
 #include <QMimeDatabase>
 #include <QMimeType>
+#include <QCryptographicHash>
 
 bool isPathInDirectory(const QString &filePath, const QString &directoryPath)
 {
@@ -100,6 +101,31 @@ void WebServer::onReadyRead()
     }
 }
 
+void WebServer::onWebSocketFrameParsed(WebSocketFrame frame)
+{
+    qDebug() << "Is Final Frame?: " <<  frame.isFinalFrame();
+    qDebug() << "Opcode: " <<  frame.opcode();
+    qDebug() << "Payload data: " <<  frame.data();
+
+    WebSocketFrame returnFrame;
+    returnFrame.setOpcode(WebSocketFrame::OpcodeText);
+    returnFrame.setData(QString("Hello world!").toUtf8());
+    returnFrame.setIsFinalFrame(true);
+
+    WebSocketParser *parser = dynamic_cast<WebSocketParser*>(sender());
+    if(parser == nullptr)
+        return;
+
+    QTcpSocket *socket = dynamic_cast<QTcpSocket*>(parser->parent());
+    if(socket == nullptr)
+        return;
+
+    qDebug() << returnFrame.toByteArray().toHex(' ');
+
+    socket->write(returnFrame.toByteArray());
+    socket->flush();
+}
+
 void WebServer::httpRequest(QTcpSocket *socket)
 {
     QByteArray array = socket->peek(maxRequestSize());
@@ -148,6 +174,7 @@ void WebServer::httpRequest(QTcpSocket *socket)
         response.defaultCodeResponse(Http::CodeNotImplemented);
 
     bool shouldSocketBeClosed = true;
+    bool shouldSwitchProtocols = false;
 
     if (listOfConnectionOptions.contains("Keep-Alive", Qt::CaseInsensitive))
     {
@@ -155,33 +182,67 @@ void WebServer::httpRequest(QTcpSocket *socket)
         shouldSocketBeClosed = false;
     }
 
-    if (response.getHttpCode() != Http::CodeNotImplemented)
+    // Проверить является ли этот запрос на WebSocket
+    if (listOfConnectionOptions.contains("Upgrade", Qt::CaseInsensitive))
     {
-        bool isNotRestrictedPath =
-            isPathInDirectory("webroot" + request.getAccessPath(), "webroot");
-
-        if (!isNotRestrictedPath)
+        if (listOfUpgradeProtocols.contains("websocket", Qt::CaseInsensitive))
         {
-            response.defaultCodeResponse(Http::CodeForbidden);
-        }
-        else
-        {
-            static QMimeDatabase db;
-
-            QString path = "webroot" + request.getAccessPath();
-            QFile file(path);
-
-            file.open(QIODevice::ReadOnly);
-
-            if(file.isOpen())
+            if (request.getFieldValue("Sec-WebSocket-Version").toInt() == 13)
             {
-                response.setHttpCode(Http::CodeOk);
-                response.addFieldValue("content-type", db.mimeTypeForFile(path).name());
-                response.setData(file.readAll());
+                QString magicString = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+                QString stringKey = request.getFieldValue("Sec-WebSocket-Key") + magicString;
+
+                QByteArray resultOfHash = QCryptographicHash::hash(stringKey.toUtf8(), QCryptographicHash::Sha1);
+                QString acceptString = resultOfHash.toBase64();
+
+                response.addFieldValue("Sec-WebSocket-Accept", acceptString);
+                response.addFieldValue("Connection", "Upgrade");
+                response.addFieldValue("Upgrade", "websocket");
+                response.setHttpCode(Http::CodeSwitchingProtocols);
+
+                shouldSwitchProtocols = true;
+                shouldSocketBeClosed = false;
+
+                WebSocketParser * parser = new WebSocketParser(socket);
+                connect(parser, &WebSocketParser::frameReady, this, &WebServer::onWebSocketFrameParsed);
+            }
+        }
+    }
+
+    if (!shouldSwitchProtocols)
+    {
+        if (response.getHttpCode() != Http::CodeNotImplemented)
+        {
+            bool isNotRestrictedPath =
+                isPathInDirectory("webroot" + request.getAccessPath(), "webroot");
+
+            if (!isNotRestrictedPath)
+            {
+                response.defaultCodeResponse(Http::CodeForbidden);
             }
             else
-                response.defaultCodeResponse(Http::CodeNotFound);
+            {
+                static QMimeDatabase db;
+
+                QString path = "webroot" + request.getAccessPath();
+                QFile file(path);
+
+                file.open(QIODevice::ReadOnly);
+
+                if(file.isOpen())
+                {
+                    response.setHttpCode(Http::CodeOk);
+                    response.addFieldValue("content-type", db.mimeTypeForFile(path).name());
+                    response.setData(file.readAll());
+                }
+                else
+                    response.defaultCodeResponse(Http::CodeNotFound);
+            }
         }
+    }
+    else
+    {
+        socket->setProperty("protocol", ProtocolWebSocket);
     }
 
     socket->write(response.formResponse());
@@ -192,6 +253,17 @@ void WebServer::httpRequest(QTcpSocket *socket)
 
 void WebServer::webSocketRequest(QTcpSocket *socket)
 {
+    for(auto child : socket->children())
+    {
+        WebSocketParser *parser = dynamic_cast<WebSocketParser*>(child);
+
+        if(parser == nullptr)
+            continue;
+
+        qDebug() << "Should parse?";
+
+        parser->parse(socket);
+    }
 }
 
 qint64 WebServer::maxRequestSize() const

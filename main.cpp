@@ -8,7 +8,7 @@ int main(int argc, char *argv[])
 
     WebServer server;
 
-    if (server.listen(QHostAddress::LocalHost))
+    if (server.listen(QHostAddress::Any))
     {
         qDebug() << "Server listening on default port";
     }

@@ -80,7 +80,7 @@ QByteArray Http::formResponse()
 
 qint64 Http::parseRequest(const QByteArray &data)
 {
-    qDebug() << data;
+    //qDebug() << data;
     int httpHeaderSize = calculateHeadersSize(data);
 
     if (httpHeaderSize == 0)

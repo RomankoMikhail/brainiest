@@ -5,6 +5,7 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 #include "Http.h"
+#include "WebSocketParser.h"
 
 class WebServer : public QObject
 {
@@ -24,6 +25,7 @@ private slots:
     void onDisconnect();
     void onReadyRead();
 
+    void onWebSocketFrameParsed(WebSocketFrame frame);
 private:
     enum Protocols {
         ProtocolHttp,
