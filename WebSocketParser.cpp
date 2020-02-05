@@ -125,9 +125,9 @@ WebSocketParser::State WebSocketParser::readPayload(QIODevice *device)
 
     mCurrentFrame.setData(data);
 
-    QTcpSocket *socket = dynamic_cast<QTcpSocket*>(parent());
+    QTcpSocket *socket = dynamic_cast<QTcpSocket *>(parent());
 
-    if(socket != nullptr)
+    if (socket != nullptr)
         emit frameReady(socket, mCurrentFrame);
 
     return StateReadHeader;

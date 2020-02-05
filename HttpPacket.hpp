@@ -21,7 +21,7 @@ public:
 
     static QVector<Cookie> fromFieldValue(const QString &value);
 
-    QString toFieldValue();
+    QString toFieldValue() const;
 
     QString name() const;
     void setName(const QString &name);
@@ -129,9 +129,8 @@ public:
     void addValue(const QString &field, const QString &value);
     void addValue(const QString &field, const QStringList &values);
 
-    QStringList getValue(const QString &field);
-    bool hasValue(const QString &field);
-
+    QStringList getValue(const QString &field) const;
+    bool hasValue(const QString &field) const;
 
     QMap<QString, QStringList> fields() const;
     void setFields(const QMap<QString, QStringList> &fields);
@@ -161,14 +160,14 @@ public:
     void setUri(const QString &uri);
 
 private:
-    QString normilizeField(const QString &field);
+    QString normilizeField(const QString &field) const;
 
     QString mUserAgent;
 
-    int mMajor = 1;
-    int mMinor = 1;
+    int mMajor       = 1;
+    int mMinor       = 1;
     Code mStatusCode = CodeOk;
-    Method mMethod = MethodGet;
+    Method mMethod   = MethodGet;
 
     QString mUri = "/";
 

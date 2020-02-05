@@ -1,5 +1,4 @@
 #include "WebSocketFrame.hpp"
-
 #include <QDataStream>
 #include <QRandomGenerator>
 

@@ -1,20 +1,125 @@
-#include <QCoreApplication>
-
 #include "WebServer.hpp"
+#include <QCoreApplication>
+#include <QCryptographicHash>
+#include <QDir>
+#include <QFileInfo>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QMimeDatabase>
 
-int main(int argc, char *argv[])
+bool isPathInDirectory(const QString &filePath, const QString &directoryPath)
 {
-    QCoreApplication a(argc, argv);
+    QString absouluteFilePath, absouluteDirectoryPath;
 
-    WebServer server;
+    absouluteFilePath      = QFileInfo(filePath).absolutePath();
+    absouluteDirectoryPath = QDir(directoryPath).absolutePath();
 
-    if (server.listen(QHostAddress::Any))
+    QString relativePath = QDir(absouluteDirectoryPath).relativeFilePath(absouluteFilePath);
+
+    // Проверяем, есть ли выход за пределы католога
+    if (relativePath.contains(".."))
+        return false;
+
+    // Проверяем, выходит ли католог на другой диск
+    QFileInfoList rootDrivesPaths = QDir::drives();
+
+    for (const auto &fileInfo : rootDrivesPaths)
     {
-        qDebug() << "Server listening on default port";
+        if (relativePath.contains(fileInfo.path()))
+            return false;
+    }
+
+    return true;
+}
+
+QString calculateFileHash(const QString &pathToFile)
+{
+    QFile file(pathToFile);
+
+    file.open(QFile::ReadOnly);
+
+    if (file.isOpen())
+    {
+        QByteArray data = file.readAll();
+
+        QByteArray hash = QCryptographicHash::hash(data, QCryptographicHash::Md5);
+        return hash.toBase64();
+    }
+
+    return "";
+}
+
+
+
+WebSocketFrame onEchoServer(SocketContext &context, const WebSocketFrame &frame)
+{
+    return frame;
+}
+
+static QString webrootDirectory = "webroot";
+
+HttpPacket onFileSystemAccess(SocketContext &context, const HttpPacket &packet)
+{
+    QMimeDatabase mimeDatabase;
+    HttpPacket response;
+
+    QString accessUri = packet.getUri();
+    if (accessUri.endsWith('/'))
+        accessUri += "index.html";
+
+    bool isNotRestrictedPath = isPathInDirectory(webrootDirectory + accessUri, webrootDirectory);
+
+    if (!isNotRestrictedPath)
+    {
+        response.setStatusCode(HttpPacket::CodeForbidden);
     }
     else
     {
-        a.exit(-1);
+        QString path     = webrootDirectory + accessUri;
+        QString fileHash = calculateFileHash(path);
+        QFile file(path);
+
+        file.open(QIODevice::ReadOnly);
+
+        if (file.isOpen())
+        {
+            response.setStatusCode(HttpPacket::CodeOk);
+            response.setMimeType(mimeDatabase.mimeTypeForFile(path));
+            response.setData(file.readAll());
+        }
+        else
+            response.setStatusCode(HttpPacket::CodeNotFound);
+    }
+
+    return response;
+}
+
+int main(int argc, char *argv[])
+{
+    QMimeDatabase mimeDatabase;
+
+    QString address = "127.0.0.1";
+    int port        = 8080;
+
+    QCoreApplication a(argc, argv);
+
+    QFile configFile;
+    configFile.setFileName("config.json");
+    configFile.open(QIODevice::ReadOnly | QIODevice::Text);
+
+    WebServer server;
+
+    server.registerHttpRoute("^\\/((?!api)).*$", onFileSystemAccess);
+    server.registerWebSocketRoute("/api/echo", onEchoServer);
+
+    if (server.listen(QHostAddress(address), port))
+    {
+        qDebug() << "Server listening on" << address << ":" << QString::number(port);
+    }
+    else
+    {
+        return -1;
     }
 
     return a.exec();

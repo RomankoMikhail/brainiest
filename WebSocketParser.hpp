@@ -19,7 +19,7 @@ public:
         StateReadPayload
     };
 
-    WebSocketParser(QObject *parent = nullptr);
+    explicit WebSocketParser(QObject *parent = nullptr);
 
     void parse(QIODevice *device);
 
@@ -41,5 +41,6 @@ private:
     State mState = StateReadHeader;
     QByteArray mInternalBuffer;
 };
+Q_DECLARE_METATYPE(WebSocketParser *)
 
 #endif // WEBSOCKETPARSER_H

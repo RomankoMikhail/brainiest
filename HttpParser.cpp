@@ -1,14 +1,14 @@
 #include "HttpParser.hpp"
 
+#include <QByteArray>
 #include <QDebug>
 #include <QString>
-#include <QByteArray>
 
 int messageCallback(http_parser *parser)
 {
-    HttpParser *caller = reinterpret_cast<HttpParser*>(parser->data);
+    HttpParser *caller = reinterpret_cast<HttpParser *>(parser->data);
 
-    switch(parser->method)
+    switch (parser->method)
     {
     case 0:
         caller->setMethod(HttpPacket::Method::MethodDelete);
@@ -43,7 +43,7 @@ int messageCallback(http_parser *parser)
 
 int urlCallback(http_parser *parser, const char *at, size_t length)
 {
-    HttpParser *caller = reinterpret_cast<HttpParser*>(parser->data);
+    HttpParser *caller = reinterpret_cast<HttpParser *>(parser->data);
 
     caller->setUrl(QString(QByteArray(at, length)));
 
@@ -52,7 +52,7 @@ int urlCallback(http_parser *parser, const char *at, size_t length)
 
 int bodyCallback(http_parser *parser, const char *at, size_t length)
 {
-    HttpParser *caller = reinterpret_cast<HttpParser*>(parser->data);
+    HttpParser *caller = reinterpret_cast<HttpParser *>(parser->data);
 
     caller->setData(QByteArray(at, length));
 
@@ -68,7 +68,7 @@ int statusCallback(http_parser *parser, const char *at, size_t length)
 
 int headerFieldCallback(http_parser *parser, const char *at, size_t length)
 {
-    HttpParser *caller = reinterpret_cast<HttpParser*>(parser->data);
+    HttpParser *caller = reinterpret_cast<HttpParser *>(parser->data);
 
     caller->setField(QString(QByteArray(at, length)));
 
@@ -77,7 +77,7 @@ int headerFieldCallback(http_parser *parser, const char *at, size_t length)
 
 int headerValueCallback(http_parser *parser, const char *at, size_t length)
 {
-    HttpParser *caller = reinterpret_cast<HttpParser*>(parser->data);
+    HttpParser *caller = reinterpret_cast<HttpParser *>(parser->data);
 
     caller->setValue(QString(QByteArray(at, length)));
 
@@ -88,12 +88,11 @@ HttpParser::HttpParser(QObject *parent) : QObject(parent)
 {
     http_parser_settings_init(&mSettings);
 
-
-    mSettings.on_url          = urlCallback;
-    mSettings.on_body         = bodyCallback;
-    mSettings.on_status       = statusCallback;
-    mSettings.on_header_field = headerFieldCallback;
-    mSettings.on_header_value = headerValueCallback;
+    mSettings.on_url              = urlCallback;
+    mSettings.on_body             = bodyCallback;
+    mSettings.on_status           = statusCallback;
+    mSettings.on_header_field     = headerFieldCallback;
+    mSettings.on_header_value     = headerValueCallback;
     mSettings.on_message_complete = messageCallback;
 
     mParser       = new http_parser();
@@ -113,7 +112,7 @@ void HttpParser::parse(QIODevice *device, const qint64 &peekSize)
 
     qint64 skip = http_parser_execute(mParser, &mSettings, readed.data(), readed.size());
 
-    if(device->isOpen())
+    if (device->isOpen())
         device->skip(skip);
 }
 
@@ -150,9 +149,9 @@ void HttpParser::setHttpVersion(const int &major, const int &minor)
 
 void HttpParser::messageReady()
 {
-    QTcpSocket *socket = dynamic_cast<QTcpSocket*>(parent());
+    QTcpSocket *socket = dynamic_cast<QTcpSocket *>(parent());
 
-    if(socket != nullptr)
+    if (socket != nullptr)
         emit httpParsed(socket, mCurrentPacket);
 
     mCurrentPacket = HttpPacket();

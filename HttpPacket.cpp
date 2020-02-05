@@ -12,22 +12,22 @@ QByteArray HttpPacket::toByteArray()
 
     dataStream << "HTTP/" << major() << '.' << minor() << " " << statusCode() << "\r\n";
 
-    for(auto iterator = mFields.begin(); iterator != mFields.end(); ++iterator)
+    for (auto iterator = mFields.begin(); iterator != mFields.end(); ++iterator)
     {
-        for(auto value : iterator.value())
+        for (const auto &value : iterator.value())
         {
             dataStream << iterator.key() << ": " << value << "\r\n";
         }
     }
 
-    for(auto iterator = mServerCookies.begin(); iterator != mServerCookies.end(); ++iterator)
+    for (const auto &cookie : mServerCookies)
     {
-        dataStream << iterator->toFieldValue() << "\r\n";
+        dataStream << cookie.toFieldValue() << "\r\n";
     }
 
     dataStream.flush();
 
-    if(method() != MethodHead)
+    if (method() != MethodHead)
     {
         dataStream << "content-length: " << mData.size() << "\r\n";
         dataStream << "content-type: " << mMimeType.name() << "\r\n\r\n";
@@ -95,24 +95,24 @@ void HttpPacket::addValue(const QString &field, const QString &value)
     }
     else
     {
-        mFields[normilizeField(field)].append(value);
+        mFields[normilizedField].append(value);
     }
 }
 
 void HttpPacket::addValue(const QString &field, const QStringList &values)
 {
-    for (auto value : values)
+    for (const auto &value : values)
     {
         addValue(field, value);
     }
 }
 
-QStringList HttpPacket::getValue(const QString &field)
+QStringList HttpPacket::getValue(const QString &field) const
 {
     return mFields.value(normilizeField(field));
 }
 
-bool HttpPacket::hasValue(const QString &field)
+bool HttpPacket::hasValue(const QString &field) const
 {
     return mFields.contains(normilizeField(field));
 }
@@ -190,7 +190,7 @@ void HttpPacket::addServerCookie(const Cookie &serverCookie)
     mServerCookies.append(serverCookie);
 }
 
-QString HttpPacket::normilizeField(const QString &field)
+QString HttpPacket::normilizeField(const QString &field) const
 {
     return field.trimmed().toLower();
 }
@@ -221,13 +221,13 @@ QVector<Cookie> Cookie::fromFieldValue(const QString &value)
 
     QStringList listOfCookies = value.split("; ");
 
-    for (auto string : listOfCookies)
+    for (const auto &string : listOfCookies)
     {
         QStringList components = string.split("=");
 
         Cookie cookie;
 
-        if(components.size() > 1)
+        if (components.size() > 1)
         {
             cookie.setName(components[0]);
             cookie.setValue(components[1]);
@@ -238,7 +238,7 @@ QVector<Cookie> Cookie::fromFieldValue(const QString &value)
     return mCookies;
 }
 
-QString Cookie::toFieldValue()
+QString Cookie::toFieldValue() const
 {
     QString result = "Set-Cookie: ";
 

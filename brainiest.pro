@@ -31,8 +31,9 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 HEADERS += \
     3rdparty/http-parser/http_parser.h \
+    HttpPacket.hpp \
     HttpParser.hpp \
     WebServer.hpp \
     WebSocketFrame.hpp \
     WebSocketParser.hpp \
-    HttpPacket.h
+    SocketContext.hpp

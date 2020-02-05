@@ -1,7 +1,10 @@
 #ifndef HTTPSERVER_H
 #define HTTPSERVER_H
 
+#include "HttpPacket.h"
 #include "HttpParser.hpp"
+#include "SocketContext.hpp"
+#include "WebSocketFrame.hpp"
 #include "WebSocketParser.hpp"
 #include <QObject>
 #include <QTcpServer>
@@ -20,34 +23,34 @@ public:
     qint64 maxRequestSize() const;
     void setMaxRequestSize(const qint64 &maxRequestSize);
 
-
-    void upgradeToWebsocket(QTcpSocket *socket, const QString &webSocketKey, bool ieFix = false);
+    void registerHttpRoute(const QString &pattern, onHttpPacketFunction callback);
+    void registerWebSocketRoute(const QString &pattern, onWebsocketFrameFunction callback);
 
 private slots:
     void onNewConnection();
     void onDisconnect();
     void onReadyRead();
 
-    void onWebSocketFrameParsed(QTcpSocket *socket, WebSocketFrame frame);
-    void onHttpPacketParsed(QTcpSocket *socket, HttpPacket packet);
+    void onWebSocketFrameParsed(QTcpSocket *socket, const WebSocketFrame &frame);
+    void onHttpPacketParsed(QTcpSocket *socket, const HttpPacket &packet);
+
+    onHttpPacketFunction getHttpCallback(const QString &path);
+    onWebsocketFrameFunction getWebSocketCallback(const QString &path);
 
 private:
-    struct SocketContext
-    {
-        WebSocketParser *webSocketParser = nullptr;
-        HttpParser *httpParser           = nullptr;
-    };
-
     enum Protocols
     {
         ProtocolHttp,
         ProtocolWebSocket
     };
 
-    void httpRequest(QTcpSocket *socket);
-    void webSocketRequest(QTcpSocket *socket);
+    void upgradeToWebsocket(QTcpSocket *socket, const QString &webSocketKey, bool ieFix = false);
 
-    QMap<QTcpSocket *, SocketContext> mClientSockets;
+    QMap<QString, onHttpPacketFunction> mHttpRouter;
+    QMap<QString, onWebsocketFrameFunction> mWebsocketRouter;
+
+    QVector<SocketContext> mContexts;
+
     QTcpServer mTcpServer;
 
     qint64 mMaxRequestSize = 10485760; // 10 Mb

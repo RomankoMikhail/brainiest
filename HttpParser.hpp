@@ -1,11 +1,11 @@
 #ifndef HTTPPARSER_H
 #define HTTPPARSER_H
 
-#include <QObject>
-#include <QIODevice>
-#include <QTcpSocket>
-#include "HttpPacket.h"
 #include "3rdparty/http-parser/http_parser.h"
+#include "HttpPacket.h"
+#include <QIODevice>
+#include <QObject>
+#include <QTcpSocket>
 
 class HttpParser : public QObject
 {
@@ -28,7 +28,7 @@ public:
     void setCurrentPacket(const HttpPacket &currentPacket);
 
 signals:
-    void httpParsed(QTcpSocket* socket, HttpPacket packet);
+    void httpParsed(QTcpSocket *socket, HttpPacket packet);
 
 private:
     QString mCurrentField;
@@ -37,5 +37,6 @@ private:
     http_parser_settings mSettings;
     http_parser *mParser = nullptr;
 };
+Q_DECLARE_METATYPE(HttpParser *)
 
 #endif // HTTPPARSER_H
