@@ -71,6 +71,10 @@ Vue.component('rd1-quest-grid', {
 
 
 window.onload = function () {
+
+	if (localStorage.logged == undefined) {
+		window.location.href = "http://192.168.0.106:8080/login.html";
+	}
 	
 	console.log("socks loaded");
 
