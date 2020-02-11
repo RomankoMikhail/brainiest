@@ -199,8 +199,11 @@ void WebServer::onHttpPacketParsed(QTcpSocket *socket, const HttpPacket &packet)
     {
         if (connectionStrings.contains("keep-alive", Qt::CaseInsensitive))
         {
-            connectionKeepAlive = true;
-            response.setField("connection", "keep-alive");
+            if (response.data().size() != 0)
+            {
+                connectionKeepAlive = true;
+                response.setField("connection", "keep-alive");
+            }
         }
     }
 

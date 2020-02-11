@@ -76,17 +76,26 @@ HttpPacket onFileSystemAccess(SocketContext &context, const HttpPacket &packet)
     {
         QString path     = webrootDirectory + accessUri;
         QString fileHash = calculateFileHash(path);
-        QFile file(path);
 
-        file.open(QIODevice::ReadOnly);
-
-        if (file.isOpen())
+        QFileInfo fileInfo(path);
+        if (fileInfo.exists() && fileInfo.isFile())
         {
-            response.setStatusCode(HttpPacket::CodeOk);
-            response.setData(file.readAll(), mimeDatabase.mimeTypeForFile(path));
+            QFile file(fileInfo.path());
+
+            file.open(QIODevice::ReadOnly);
+
+            if (file.isOpen())
+            {
+                response.setStatusCode(HttpPacket::CodeOk);
+                response.setData(file.readAll(), mimeDatabase.mimeTypeForFile(path));
+            }
+            else
+                response.setStatusCode(HttpPacket::CodeNotFound);
         }
         else
+        {
             response.setStatusCode(HttpPacket::CodeNotFound);
+        }
     }
 
     return response;
