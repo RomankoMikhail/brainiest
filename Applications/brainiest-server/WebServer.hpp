@@ -1,7 +1,7 @@
 #ifndef HTTPSERVER_H
 #define HTTPSERVER_H
 
-#include "HttpPacket.h"
+#include "HttpPacket.hpp"
 #include "HttpParser.hpp"
 #include "SocketContext.hpp"
 #include "WebSocketFrame.hpp"

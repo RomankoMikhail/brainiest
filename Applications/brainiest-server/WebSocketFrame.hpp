@@ -20,13 +20,13 @@ public:
 
     QByteArray toByteArray(bool useMask = false);
 
-    bool isFinalFrame() const;
+    const bool &isFinalFrame() const;
     void setIsFinalFrame(bool isFinalFrame);
 
-    QByteArray data() const;
+    const QByteArray &data() const;
     void setData(const QByteArray &data);
 
-    WebSocketOpcode opcode() const;
+    const WebSocketOpcode &opcode() const;
     void setOpcode(const WebSocketOpcode &opcode);
 
 private:

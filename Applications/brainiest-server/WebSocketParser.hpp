@@ -1,10 +1,10 @@
 #ifndef WEBSOCKETPARSER_H
 #define WEBSOCKETPARSER_H
 
+#include "WebSocketFrame.hpp"
 #include <QIODevice>
 #include <QObject>
 #include <QTcpSocket>
-#include <WebSocketFrame.hpp>
 
 class WebSocketParser : public QObject
 {

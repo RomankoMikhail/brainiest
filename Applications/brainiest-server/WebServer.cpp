@@ -150,8 +150,7 @@ void WebServer::onWebSocketFrameParsed(QTcpSocket *socket, const WebSocketFrame 
 
 void WebServer::onHttpPacketParsed(QTcpSocket *socket, const HttpPacket &packet)
 {
-
-    QString accessPath = packet.getUri();
+    QString accessPath = packet.url();
 
     onHttpPacketFunction httpCallback = getHttpCallback(accessPath);
 
@@ -189,9 +188,9 @@ void WebServer::onHttpPacketParsed(QTcpSocket *socket, const HttpPacket &packet)
         response.setStatusCode(HttpPacket::CodeNotFound);
         response.setMajor(1);
         response.setMinor(1);
-        response.setMimeType(mimeDatabase.mimeTypeForName("text/html"));
 
-        response.setData("<h1>Not found</h1><p>The requested URL was not found</p>");
+        response.setData("<h1>Not found</h1><p>The requested URL was not found</p>",
+                         mimeDatabase.mimeTypeForName("text/html"));
     }
 
     bool connectionKeepAlive = false;

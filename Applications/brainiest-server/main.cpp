@@ -50,8 +50,6 @@ QString calculateFileHash(const QString &pathToFile)
     return "";
 }
 
-
-
 WebSocketFrame onEchoServer(SocketContext &context, const WebSocketFrame &frame)
 {
     return frame;
@@ -64,7 +62,7 @@ HttpPacket onFileSystemAccess(SocketContext &context, const HttpPacket &packet)
     QMimeDatabase mimeDatabase;
     HttpPacket response;
 
-    QString accessUri = packet.getUri();
+    QString accessUri = packet.url();
     if (accessUri.endsWith('/'))
         accessUri += "index.html";
 
@@ -85,8 +83,7 @@ HttpPacket onFileSystemAccess(SocketContext &context, const HttpPacket &packet)
         if (file.isOpen())
         {
             response.setStatusCode(HttpPacket::CodeOk);
-            response.setMimeType(mimeDatabase.mimeTypeForFile(path));
-            response.setData(file.readAll());
+            response.setData(file.readAll(), mimeDatabase.mimeTypeForFile(path));
         }
         else
             response.setStatusCode(HttpPacket::CodeNotFound);

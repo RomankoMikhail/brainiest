@@ -10,10 +10,6 @@ int messageCallback(http_parser *parser)
 
     switch (parser->method)
     {
-    case 0:
-        caller->setMethod(HttpPacket::Method::MethodDelete);
-        break;
-
     case 1:
         caller->setMethod(HttpPacket::Method::MethodGet);
         break;
@@ -24,10 +20,6 @@ int messageCallback(http_parser *parser)
 
     case 3:
         caller->setMethod(HttpPacket::Method::MethodPost);
-        break;
-
-    case 4:
-        caller->setMethod(HttpPacket::Method::MethodPut);
         break;
 
     default:
@@ -118,7 +110,7 @@ void HttpParser::parse(QIODevice *device, const qint64 &peekSize)
 
 void HttpParser::setUrl(const QString &url)
 {
-    mCurrentPacket.setUri(url);
+    mCurrentPacket.setUrl(url);
 }
 
 void HttpParser::setMethod(const HttpPacket::Method &method)

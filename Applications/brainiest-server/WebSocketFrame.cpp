@@ -50,7 +50,7 @@ QByteArray WebSocketFrame::toByteArray(bool useMask)
     int maskPosition = 0;
     quint8 *byteMask = reinterpret_cast<quint8 *>(&mask);
 
-    for (auto byte : mData)
+    for (const auto &byte : mData)
     {
         array.push_back(byte ^ byteMask[maskPosition]);
 
@@ -60,7 +60,7 @@ QByteArray WebSocketFrame::toByteArray(bool useMask)
     return array;
 }
 
-bool WebSocketFrame::isFinalFrame() const
+const bool &WebSocketFrame::isFinalFrame() const
 {
     return mIsFinalFrame;
 }
@@ -70,7 +70,7 @@ void WebSocketFrame::setIsFinalFrame(bool isFinalFrame)
     mIsFinalFrame = isFinalFrame;
 }
 
-QByteArray WebSocketFrame::data() const
+const QByteArray &WebSocketFrame::data() const
 {
     return mData;
 }
@@ -80,7 +80,7 @@ void WebSocketFrame::setData(const QByteArray &data)
     mData = data;
 }
 
-WebSocketFrame::WebSocketOpcode WebSocketFrame::opcode() const
+const WebSocketFrame::WebSocketOpcode &WebSocketFrame::opcode() const
 {
     return mOpcode;
 }

@@ -1,8 +1,8 @@
 #ifndef HTTPPARSER_H
 #define HTTPPARSER_H
 
-#include "3rdparty/http-parser/http_parser.h"
-#include "HttpPacket.h"
+#include "HttpPacket.hpp"
+#include "http_parser.h"
 #include <QIODevice>
 #include <QObject>
 #include <QTcpSocket>
