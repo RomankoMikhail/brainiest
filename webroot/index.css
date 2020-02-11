@@ -1,0 +1,105 @@
+
+.buttoned {
+  -webkit-transition-duration: 0.4s; /* Safari */
+  transition-duration: 0.4s;
+  background-color: white; /* Green */
+  border: 2px solid #4CAF50;
+  color: black;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin-top: 10px;
+}
+.button {
+  -webkit-transition-duration: 0.4s; /* Safari */
+  transition-duration: 0.4s;
+  background-color: white; /* Green */
+  border: 2px solid #4CAF50;
+  color: black;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+}
+.nobottom {
+  border-bottom: none;
+}
+.lefted{
+  text-align: left;
+}
+.blued {
+  border: 2px solid blue;  
+}
+.button:hover {
+  background-color: #4CAF50; /* Green */
+  color: white;
+}
+input[type="checkbox"] {display: none; margin: 0;}
+input[type="checkbox"] + label {
+  display: inline;
+  position: relative;
+  padding-left: 20px;
+  margin-bottom: 20px;
+  font: 14px/20px 'Open Sans', Arial, sans-serif;
+  color: #ddd;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+input[type="checkbox"] + label:last-child { margin-bottom: 0; }
+
+input[type="checkbox"] + label:before {
+  content: '';
+  display: inline;
+  width: 20px;
+  height: 20px;
+  border: 1px solid #6cc0e5;
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: .6;
+  -webkit-transition: all .12s, border-color .08s;
+  transition: all .12s, border-color .08s;
+}
+
+input[type="checkbox"]:checked + label:before {
+  width: 10px;
+  top: -5px;
+  left: 5px;
+  border-radius: 0;
+  opacity: 1;
+  border-top-color: transparent;
+  border-left-color: transparent;
+  -webkit-transform: rotate(45deg);
+  transform: rotate(45deg);
+}
+
+
+.goright{
+  margin-left: 35px;
+}
+.gofullleft{
+  background-color: white; /* Green */
+  border: 2px solid #4CAF50;
+  color: black;
+}
+.gotop {  
+  margin-top: 10px;
+}
+.goleft {
+  margin-left: 10px;
+}
+.framed {
+  width: 1600px;
+  overflow:scroll;
+}
+.flexed {margin-left: 10px; display: flex; flex-direction: column; justify-content: space-around;}
+body {display: flex; 
+    overflow-x: hidden;}
+.box {border: 2px solid #4CAF50; width: 500px; height: 500px; display: inline-block;}
+
