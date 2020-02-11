@@ -11,13 +11,7 @@ public:
     ~TestCookie() = default;
 
 private slots:
-    void test_case1();
 };
-
-void TestCookie::test_case1()
-{
-    QFAIL("Not implemented");
-}
 
 QTEST_APPLESS_MAIN(TestCookie)
 

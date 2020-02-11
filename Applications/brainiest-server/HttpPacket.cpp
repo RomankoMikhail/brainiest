@@ -157,15 +157,11 @@ QStringList HttpPacket::parseField(const QString &fieldName, const QString &fiel
     bool isSetCookie = fieldName.contains("set-cookie", Qt::CaseInsensitive);
     bool isUserAgent = fieldName.contains("user-agent", Qt::CaseInsensitive);
     bool isDate      = fieldName.contains("date", Qt::CaseInsensitive);
-    bool isCookie    = fieldName.contains("cookie", Qt::CaseInsensitive);
+    bool isExpires = fieldName.contains("expires", Qt::CaseInsensitive);
 
-    if (!isSetCookie && !isUserAgent && !isDate)
+    if (!isSetCookie && !isUserAgent && !isDate && !isExpires)
     {
         QStringList stringList;
-
-        if (isCookie)
-            stringList = fieldValue.split(';');
-        else
             stringList = fieldValue.split(',');
 
         for (auto &string : stringList)

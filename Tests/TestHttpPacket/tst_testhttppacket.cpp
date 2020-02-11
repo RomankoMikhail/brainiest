@@ -125,7 +125,7 @@ void TestHttpPacket::testHttpPacketRealHeaders()
     QCOMPARE(packet.getValue(accept.name()), accept.results());
     QCOMPARE(packet.getValue(acceptLanguage.name()), acceptLanguage.results());
     QCOMPARE(packet.getValue(acceptEncoding.name()), acceptEncoding.results());
-    QVERIFY(packet.getValue(cookie.name()) == cookie.results());
+    QCOMPARE(packet.getValue(cookie.name()), cookie.results());
     QCOMPARE(packet.getValue(expires.name()), expires.results());
 }
 
