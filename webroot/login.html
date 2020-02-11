@@ -8,7 +8,7 @@
 	<script type="text/javascript" src="login.js"></script>
 </head>
 <body>
-	<div id="logform">
+	<form id="logform" action="javascript:void(0);">
 		<div class="flexed" v-if="dispLogin">
 			<input type="text" name="" class="buttoned" autocomplete="username" placeholder="Логин">
 			<input type="password" name="" class="buttoned" autocomplete="current-password" placeholder="Пароль">
@@ -19,14 +19,14 @@
 		</div>
 		<div class="flexed" v-if="dispSession">
 			<input type="number" name="" class="buttoned" placeholder="Номер сессии" id="nSession" key="session_input">
-			<button class="button gotop" v-on:click="getSession">Присоединиться</button>
+			<button type="submit" class="button gotop" v-on:click="getSession">Присоединиться</button>
 			<button class="button gotop" v-on:click="createSession">Создать сессию</button>
 		</div>
 		<div class="flexed" v-if="dispNickname">
 			<input type="text" name="" class="buttoned" placeholder="Введите Ваше имя" id="nName" kety="nuckname_input">
 			<button class="button gotop" v-on:click="getName">Ок</button>
 		</div>
-	</div>
+	</form>
 	
 	
 </body>
