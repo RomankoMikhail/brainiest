@@ -33,23 +33,6 @@ bool isPathInDirectory(const QString &filePath, const QString &directoryPath)
     return true;
 }
 
-QString calculateFileHash(const QString &pathToFile)
-{
-    QFile file(pathToFile);
-
-    file.open(QFile::ReadOnly);
-
-    if (file.isOpen())
-    {
-        QByteArray data = file.readAll();
-
-        QByteArray hash = QCryptographicHash::hash(data, QCryptographicHash::Md5);
-        return hash.toBase64();
-    }
-
-    return "";
-}
-
 WebSocketFrame onEchoServer(SocketContext &context, const WebSocketFrame &frame)
 {
     return frame;
@@ -62,7 +45,16 @@ HttpPacket onFileSystemAccess(SocketContext &context, const HttpPacket &packet)
     QMimeDatabase mimeDatabase;
     HttpPacket response;
 
-    QString accessUri = packet.url();
+    QStringList uri = packet.url().split(QRegExp("[?&]"));
+
+    if (uri.size() == 0)
+    {
+        response.setStatusCode(HttpPacket::CodeBadRequest);
+        return response;
+    }
+
+    QString accessUri = uri.at(0);
+
     if (accessUri.endsWith('/'))
         accessUri += "index.html";
 
@@ -74,13 +66,12 @@ HttpPacket onFileSystemAccess(SocketContext &context, const HttpPacket &packet)
     }
     else
     {
-        QString path     = webrootDirectory + accessUri;
-        QString fileHash = calculateFileHash(path);
+        QString path = webrootDirectory + accessUri;
 
         QFileInfo fileInfo(path);
         if (fileInfo.exists() && fileInfo.isFile())
         {
-            QFile file(fileInfo.path());
+            QFile file(fileInfo.filePath());
 
             file.open(QIODevice::ReadOnly);
 
