@@ -1,4 +1,4 @@
-
+import {addr, ws} from './addrs.js';
 window.onload = function(){
 	new Vue({ 
 		el: '#logform',
@@ -12,21 +12,21 @@ window.onload = function(){
 		methods:{
 			getSession : function(event){
 				console.log("got session");
-				session_id = event.target.parentElement.children[0].value;
-				if (session_id.length > 0) {
+				this.session_id = event.target.parentElement.children[0].value;
+				if (this.session_id.length > 0) {
 					this.dispSession = false;
 					this.dispNickname = true;
 				}
 			},
 			getName : function(event){
 				console.log("got name");
-				username = event.target.parentElement.children[0].value;
-				if (username.length > 2) {
+				this.username = event.target.parentElement.children[0].value;
+				if (this.username.length > 2) {
 					this.dispNickname = false;
-					localStorage.logged = username;
+					localStorage.logged = this.username;
 					localStorage.logType = "player";
-					localStorage.session_id = session_id;
-					window.location.href = "http://192.168.0.106:8080/index.html";
+					localStorage.session_id = this.session_id;
+					window.location.href = addr+"index.html";
 				}
 			},
 			createSession : function(){
@@ -43,15 +43,15 @@ window.onload = function(){
 			},
 			log : function(event){
 				console.log("login attempt");
-				username = event.target.parentElement.previousElementSibling.previousElementSibling.value;
-				console.log(username);
+				this.username = event.target.parentElement.previousElementSibling.previousElementSibling.value;
+				console.log(this.username);
 				console.log(event.target.parentElement.previousElementSibling.value);
-				if (username.length > 2) {
+				if (this.username.length > 2) {
 					this.dispNickname = false;
-					localStorage.logged = username;
+					localStorage.logged = this.username;
 					localStorage.logType = "admin";
 					localStorage.session_id = "";
-					window.location.href = "http://192.168.0.106:8080/index.html";
+					window.location.href = addr+"index.html";
 				}
 			}
 		}

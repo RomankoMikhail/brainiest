@@ -5,11 +5,13 @@
 	<title>Brainiest_test</title>
 	<link rel="stylesheet" type="text/css" href="index.css">
 	<link rel="stylesheet" type="text/css" href="table.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/d3js/5.15.0/d3.min.js"></script>
 	<script type="text/javascript" src="vue.js"></script>
- <script type="text/javascript" src=""></script>
+ 	<script type="module" src="index.js"></script>
 </head>
 <body>
 	<script type="text/x-template" id="rd3-grid-template">
+
 		<table v-if="quests">
 			<tbody>
 	    		<tr v-for="( name, value) in getQuests">
@@ -22,14 +24,16 @@
 	</script>
 
 	<script type="text/x-template" id="rd1-grid-template">
-		<div v-if="question" class="buttoned">
-			<div class="buttoned nobottom">
+
+		<div v-if="question" class="buttoned" v-on:click = "getObj">
+			<div class="buttoned nobottom" id="rd1-title">
 				{{question}}
+
 			</div>
-			<table>
-				<tr>
-					<td v-for="entry in answers"  v-on:click="pressed">
-						{{entry}}
+			<table id="rd1-body">
+				<tr v-for="entry, index in answers">
+					<td v-for="value in entry" v-on:click="pressed" :id = index>
+						{{value}}
 					</td>
 				</tr>
 			</table>
@@ -46,6 +50,7 @@
 
 	<div id="rd1">
 		<rd1-quest-grid
+			:count="count"
 			:question="json.question"
 			:answers="json.answers">
 		</rd1-quest-grid>
@@ -57,7 +62,7 @@
 	 <Button v-on:click="test3" class="button">3 RND</Button>
 	 <Button v-on:click="test" class="button">TEST</Button>
 	 <Button v-on:click="reset" class="button">RESET</Button>
-	 <a href="func.php" class="button"></a>
+	 <Button v-on:click="exit" class="button">EXIT</Button>
 	</div>
 </body>
 </html>
