@@ -5,7 +5,7 @@
 	<title>Brainiest_login</title>
 	<link rel="stylesheet" type="text/css" href="index.css">
 	<script type="text/javascript" src="vue.js"></script>
-	<script type="text/javascript" src="login.js"></script>
+	<script type="module" src="login.js"></script>
 </head>
 <body>
 	<form id="logform" action="javascript:void(0);">
@@ -23,7 +23,7 @@
 			<button class="button gotop" v-on:click="createSession">Создать сессию</button>
 		</div>
 		<div class="flexed" v-if="dispNickname">
-			<input type="text" name="" class="buttoned" placeholder="Введите Ваше имя" id="nName" kety="nuckname_input">
+			<input type="text" name="" class="buttoned" placeholder="Введите Ваше имя" id="nName" key="nickname_input">
 			<button class="button gotop" v-on:click="getName">Ок</button>
 		</div>
 	</form>
