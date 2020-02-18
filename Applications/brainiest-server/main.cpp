@@ -7,6 +7,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QMimeDatabase>
+#include "Singleton.hpp"
+#include "User.hpp"
 
 bool isPathInDirectory(const QString &filePath, const QString &directoryPath)
 {
@@ -104,6 +106,13 @@ int main(int argc, char *argv[])
     QFile configFile;
     configFile.setFileName("config.json");
     configFile.open(QIODevice::ReadOnly | QIODevice::Text);
+
+    QSqlError error = Singleton::database().init("storage.db3");
+    if(error.isValid())
+    {
+        qCritical() << "Can't initialize database";
+        return -1;
+    }
 
     WebServer server;
 

@@ -1,5 +1,5 @@
 QT -= gui
-QT += core network
+QT += core network sql
 
 CONFIG += c++11 console
 CONFIG -= app_bundle
@@ -25,7 +25,9 @@ SOURCES += \
     main.cpp \
     WebServer.cpp \
     HttpParser.cpp \
-    HttpPacket.cpp
+    HttpPacket.cpp \
+    Database.cpp \
+    User.cpp
 
 HEADERS += \
     $$PWD/../../3rdparty/http-parser/http_parser.h \
@@ -35,7 +37,10 @@ HEADERS += \
     WebServer.hpp \
     WebSocketFrame.hpp \
     WebSocketParser.hpp \
-    SocketContext.hpp
+    SocketContext.hpp \
+    Database.hpp \
+    Singleton.hpp \
+    User.hpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
