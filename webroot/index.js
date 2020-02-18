@@ -1,4 +1,4 @@
-var sockAddr = "ws://192.168.0.106:8080";
+﻿import {addr, ws} from './addrs.js';
 
 var socket;
 
@@ -17,12 +17,13 @@ var testRnd3 = {
 	
 };
 var testRnd1 = {
+
 	type:"1",
 	data: 	{
-				question: "Пробный вопрос",
-				answers: ["Ответ №1", "Ответ №2", "Ответ №3"]
+
+				question: "Пробный вопросПробный вопросПробный вопросПробный вопросПробный вопросПробный вопросПробный вопросПробный вопросПробный вопросПробный вопросПробный вопросПробный вопросПробный вопросПробный вопросПробный вопросПробный вопросПробный вопросПробный вопросПробный вопрос",
+				answers: [["Ответ №1", "Ответ №2", "Ответ №3"],["Ответ №3","Ответ №3","Ответ №3"],["Ответ №3","Ответ №3","Ответ №3"],["Ответ №3","Ответ №3","Ответ №3"],["Ответ №3"]]
 			}
-	
 };
 var resetJson = {
 	type: "0",
@@ -56,21 +57,33 @@ Vue.component('rd3-quest-grid', {
 Vue.component('rd1-quest-grid', {
 	template: '#rd1-grid-template',
 	props: {
+		count:Number,
 		question: String,
 		answers: Array,
 	},
 	methods: {
       pressed : function(event) {
         if (event) {
+		console.log("y = " + event.target.id);
 		console.log("x = " + event.target.cellIndex);
         console.log(event);
         }
+      },
+      getObj: function(event){
+      	console.log(event);
+      },
+      addCount: function(){
+      	this.count = this.count + 1;
       }
     }
 })
 
 
 window.onload = function () {
+
+	if (localStorage.logged == undefined) {
+		window.location.href = addr+"login.html";
+	}
 	
 	console.log("socks loaded");
 
@@ -84,13 +97,24 @@ window.onload = function () {
 	var vict = new Vue({
 		el: '#rd1',
 		data:{
+			count:0,
 			json: {}
+		},
+		updated: function(){
+			this.$nextTick(function () {
+				let title = document.getElementById("rd1-title");
+				let table = document.getElementById("rd1-body");
+				document.getElementById("rd1-title").style.width = table.offsetWidth-75+"px";
+				console.log(document.getElementById("rd1-title").style);
+				
+
+			});
 		}
 	});
 				
 
 
-	socket = new WebSocket(sockAddr);
+	socket = new WebSocket(ws);
 	socket.onopen  = function(e) {
 		console.info("Open socket");
 	}
@@ -143,9 +167,14 @@ let controller = new Vue({
 			console.log(vict._data);
 			console.log("quest happened");
 			console.log(quest._data);
+
 		},
 		reset: function(){
 			socket.send(JSON.stringify(resetJson));
+		},
+		exit: function(){
+			localStorage.logged = undefined;
+			window.location.href = addr+"login.html";
 		}
 	}
 

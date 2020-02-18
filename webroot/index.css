@@ -1,4 +1,8 @@
-
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
 .buttoned {
   -webkit-transition-duration: 0.4s; /* Safari */
   transition-duration: 0.4s;
@@ -79,7 +83,9 @@ input[type="checkbox"]:checked + label:before {
   transform: rotate(45deg);
 }
 
-
+.fullfill {
+  width: 100%;
+}
 .goright{
   margin-left: 35px;
 }
@@ -99,6 +105,9 @@ input[type="checkbox"]:checked + label:before {
   overflow:scroll;
 }
 .flexed {margin-left: 10px; display: flex; flex-direction: column; justify-content: space-around;}
+.fillflex {
+  display: flex; flex-direction: row; justify-content: space-between;
+}
 body {display: flex; 
     overflow-x: hidden;}
 .box {border: 2px solid #4CAF50; width: 500px; height: 500px; display: inline-block;}
