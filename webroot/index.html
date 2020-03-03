@@ -6,63 +6,83 @@
 	<link rel="stylesheet" type="text/css" href="index.css">
 	<link rel="stylesheet" type="text/css" href="table.css">
 	<script src="https://ajax.googleapis.com/ajax/libs/d3js/5.15.0/d3.min.js"></script>
+	<script
+	  src="https://code.jquery.com/jquery-3.4.1.js"
+	  integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU="
+	  crossorigin="anonymous">
+  	</script>
 	<script type="text/javascript" src="vue.js"></script>
+ 	<script type="text/javascript" src="btns.js"></script>
  	<script type="module" src="index.js"></script>
-</head>
+</head>	
 <body>
-	<script type="text/x-template" id="rd3-grid-template">
-
-		<table v-if="quests">
-			<tbody>
-	    		<tr v-for="( name, value) in getQuests">
-	    			<td v-for="(entry, index) in columns" v-on:click="pressed" :id = value>
-	          			{{name[index]}}
-	        		</td>
-	      		</tr>
-	    	</tbody>
-	  	</table>
-	</script>
-
-	<script type="text/x-template" id="rd1-grid-template">
-
-		<div v-if="question" class="buttoned" v-on:click = "getObj">
-			<div class="buttoned nobottom" id="rd1-title">
-				{{question}}
-
-			</div>
-			<table id="rd1-body">
-				<tr v-for="entry, index in answers">
-					<td v-for="value in entry" v-on:click="pressed" :id = index>
-						{{value}}
-					</td>
-				</tr>
-			</table>
+	<header>
+		<img src=".\res\logo\favicon.png">
+		<div id="profileTop" onclick="profileMenu()">
+				<img src=".\res\userIco\userIco_default.png">
+				<span>SampleName</span>
+				<div id="profileDropdown" class="dropdown-content">
+					<a href="#">Link a</a>			
+					<a href="#">Link b</a>			
+					<a href="#">Link c</a>			
+				</div>
 		</div>
-	</script>
+	</header>
+	<div id="bodyClass">
+		<script type="text/x-template" id="rd3-grid-template">
 
-	<div id="rd3">
-	  	<rd3-quest-grid 
-	    	:quests="json.gridData"
-	    	:columns="json.gridColumns" 
-	    	:type="json.type">
-	  	</rd3-quest-grid>
-	</div>
+			<table v-if="quests">
+				<tbody>
+		    		<tr v-for="( name, value) in getQuests">
+		    			<td v-for="(entry, index) in columns" v-on:click="pressed" :id = value>
+		          			{{name[index]}}
+		        		</td>
+		      		</tr>
+		    	</tbody>
+		  	</table>
+		</script>
 
-	<div id="rd1">
-		<rd1-quest-grid
-			:count="count"
-			:question="json.question"
-			:answers="json.answers">
-		</rd1-quest-grid>
-	</div>
+		<script type="text/x-template" id="rd1-grid-template">
 
-	 <div class="flexed" id="controller">
-	 <Button v-on:click="test1" class="button">1 RND</Button>
-	 <Button v-on:click="" class="button">2 RND</Button>
-	 <Button v-on:click="test3" class="button">3 RND</Button>
-	 <Button v-on:click="test" class="button">TEST</Button>
-	 <Button v-on:click="reset" class="button">RESET</Button>
-	 <Button v-on:click="exit" class="button">EXIT</Button>
+			<div v-if="question" class="buttoned" v-on:click = "getObj">
+				<div class="buttoned nobottom" id="rd1-title">
+					{{question}}
+
+				</div>
+				<table id="rd1-body">
+					<tr v-for="entry, index in answers">
+						<td v-for="value in entry" v-on:click="pressed" :id = index>
+							{{value}}
+						</td>
+					</tr>
+				</table>
+			</div>
+		</script>
+
+		<div id="rd3">
+		  	<rd3-quest-grid 
+		    	:quests="json.gridData"
+		    	:columns="json.gridColumns" 
+		    	:type="json.type">
+		  	</rd3-quest-grid>
+		</div>
+
+		<div id="rd1">
+			<rd1-quest-grid
+				:count="count"
+				:question="json.question"
+				:answers="json.answers">
+			</rd1-quest-grid>
+		</div>
+
+		 <div class="flexed" id="controller">
+		 <Button v-on:click="test1" class="button">1 RND</Button>
+		 <Button v-on:click="" class="button">2 RND</Button>
+		 <Button v-on:click="test3" class="button">3 RND</Button>
+		 <Button v-on:click="test" class="button">TEST</Button>
+		 <Button v-on:click="reset" class="button">RESET</Button>
+		 <Button v-on:click="exit" class="button">EXIT</Button>
+		</div>
 	</div>
 </body>
 </html>

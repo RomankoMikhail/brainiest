@@ -78,12 +78,14 @@ Vue.component('rd1-quest-grid', {
     }
 })
 
-
 window.onload = function () {
 
 	if (localStorage.logged == undefined) {
 		window.location.href = addr+"login.html";
 	}
+
+	console.log($("#profileTop > span"));
+	$("#profileTop > span").text(localStorage.logged);
 	
 	console.log("socks loaded");
 
@@ -179,7 +181,21 @@ let controller = new Vue({
 	}
 
 });
+
 }
+
+$(window).scroll(function() {
+	if ($(this).scrollTop() > 1) {
+		$('header').addClass("sticky");
+		$("#bodyClass").addClass("indentCollapsed");
+	} else {
+		$('header').removeClass("sticky");
+		$("#bodyClass").removeClass("indentCollapsed");
+	}
+});
+
+
+
 
 
 
