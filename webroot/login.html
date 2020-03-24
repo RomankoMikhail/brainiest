@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Brainiest_login</title>
+	<link rel="stylesheet" type="text/css" href="index.css">
+	<script type="text/javascript" src="vue.js"></script>
+	<script type="module" src="login.js"></script>
+</head>
+<body>
+	<form id="logform" action="javascript:void(0);">
+		<div class="flexed" v-if="dispLogin">
+			<input type="text" name="" class="buttoned" autocomplete="username" placeholder="Логин">
+			<input type="password" name="" class="buttoned" autocomplete="current-password" placeholder="Пароль">
+			<div class="gotop fillflex">
+				<button class="button" v-on:click="log">Войти</button>
+				<button class="button" v-on:click="back">Я игрок</button>
+			</div>
+		</div>
+		<div class="flexed" v-if="dispSession">
+			<input type="number" name="" class="buttoned" placeholder="Номер сессии" id="nSession" key="session_input">
+			<button type="submit" class="button gotop" v-on:click="getSession">Присоединиться</button>
+			<button class="button gotop" v-on:click="createSession">Создать сессию</button>
+		</div>
+		<div class="flexed" v-if="dispNickname">
+			<input type="text" name="" class="buttoned" placeholder="Введите Ваше имя" id="nName" key="nickname_input">
+			<button class="button gotop" v-on:click="getName">Ок</button>
+		</div>
+	</form>
+	
+	
+</body>
+</html>
