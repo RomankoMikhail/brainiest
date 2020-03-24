@@ -27,7 +27,9 @@ SOURCES += \
     HttpParser.cpp \
     HttpPacket.cpp \
     Database.cpp \
-    User.cpp
+    User.cpp \
+    Action.cpp \
+    Actions.cpp
 
 HEADERS += \
     $$PWD/../../3rdparty/http-parser/http_parser.h \
@@ -40,7 +42,9 @@ HEADERS += \
     SocketContext.hpp \
     Database.hpp \
     Singleton.hpp \
-    User.hpp
+    User.hpp \
+    Action.hpp \
+    Actions.hpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

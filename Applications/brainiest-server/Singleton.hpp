@@ -2,6 +2,7 @@
 #define SINGLETONDATABASE_HPP
 
 #include "Database.hpp"
+#include "Action.hpp"
 
 class Singleton
 {
@@ -13,6 +14,12 @@ public:
     {
         static Database database;
         return database;
+    }
+
+    static Action &action()
+    {
+        static Action action;
+        return action;
     }
 };
 

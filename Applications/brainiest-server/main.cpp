@@ -1,3 +1,6 @@
+#include "Actions.hpp"
+#include "Singleton.hpp"
+#include "User.hpp"
 #include "WebServer.hpp"
 #include <QCoreApplication>
 #include <QCryptographicHash>
@@ -7,8 +10,6 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QMimeDatabase>
-#include "Singleton.hpp"
-#include "User.hpp"
 
 bool isPathInDirectory(const QString &filePath, const QString &directoryPath)
 {
@@ -33,6 +34,31 @@ bool isPathInDirectory(const QString &filePath, const QString &directoryPath)
     }
 
     return true;
+}
+
+WebSocketFrame onActionServer(SocketContext &context, const WebSocketFrame &frame)
+{
+    QJsonDocument requestDocument, responseDocument;
+
+    requestDocument = QJsonDocument::fromJson(frame.data());
+
+    if (!requestDocument.isObject() || !requestDocument.object().contains("cmd"))
+    {
+        responseDocument.setObject(Action::formResponseFromCode(Action::ReturnCodeError));
+    }
+    else
+    {
+        auto response = Singleton::action().exec(requestDocument.object()["cmd"].toString(),
+                                                 requestDocument.object());
+
+        responseDocument.setObject(response);
+    }
+
+    WebSocketFrame responseFrame;
+    responseFrame.setOpcode(WebSocketFrame::OpcodeText);
+    responseFrame.setData(responseDocument.toJson());
+    responseFrame.setIsFinalFrame(true);
+    return responseFrame;
 }
 
 WebSocketFrame onEchoServer(SocketContext &context, const WebSocketFrame &frame)
@@ -69,6 +95,7 @@ HttpPacket onFileSystemAccess(SocketContext &context, const HttpPacket &packet)
     else
     {
         QString path = webrootDirectory + accessUri;
+        qDebug() << path;
 
         QFileInfo fileInfo(path);
         if (fileInfo.exists() && fileInfo.isFile())
@@ -80,6 +107,7 @@ HttpPacket onFileSystemAccess(SocketContext &context, const HttpPacket &packet)
             if (file.isOpen())
             {
                 response.setStatusCode(HttpPacket::CodeOk);
+                qDebug() << path << mimeDatabase.mimeTypeForFile(path);
                 response.setData(file.readAll(), mimeDatabase.mimeTypeForFile(path));
             }
             else
@@ -108,7 +136,7 @@ int main(int argc, char *argv[])
     configFile.open(QIODevice::ReadOnly | QIODevice::Text);
 
     QSqlError error = Singleton::database().init("storage.db3");
-    if(error.isValid())
+    if (error.isValid())
     {
         qCritical() << "Can't initialize database";
         return -1;
@@ -118,6 +146,10 @@ int main(int argc, char *argv[])
 
     server.registerHttpRoute("^\\/((?!api)).*$", onFileSystemAccess);
     server.registerWebSocketRoute("/api/echo", onEchoServer);
+    server.registerWebSocketRoute("/api/action", onActionServer);
+    server.registerWebSocketRoute("/", onActionServer);
+
+    registerActions();
 
     if (server.listen(QHostAddress(address), port))
     {
