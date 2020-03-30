@@ -29,7 +29,7 @@ bool isPathInDirectory(const QString &filePath, const QString &directoryPath)
 
     for (const auto &fileInfo : rootDrivesPaths)
     {
-        if (relativePath.contains(fileInfo.path()))
+        if (relativePath.startsWith(fileInfo.path()))
             return false;
     }
 
@@ -87,6 +87,8 @@ HttpPacket onFileSystemAccess(SocketContext &context, const HttpPacket &packet)
         accessUri += "index.html";
 
     bool isNotRestrictedPath = isPathInDirectory(webrootDirectory + accessUri, webrootDirectory);
+
+
 
     if (!isNotRestrictedPath)
     {

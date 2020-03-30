@@ -30,7 +30,8 @@ SOURCES += \
     User.cpp \
     Action.cpp \
     Actions.cpp \
-    ApiToken.cpp
+    ApiToken.cpp \
+    Question.cpp
 
 HEADERS += \
     $$PWD/../../3rdparty/http-parser/http_parser.h \
@@ -46,7 +47,8 @@ HEADERS += \
     User.hpp \
     Action.hpp \
     Actions.hpp \
-    ApiToken.hpp
+    ApiToken.hpp \
+    Question.hpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
