@@ -30,6 +30,12 @@ const auto CREATE_ASSOCIATION = QString(R"(CREATE TABLE IF NOT EXISTS `associati
                                         `right_words` VARCHAR(300) NOT NULL
                                         ))");
 
+const auto CREATE_API_TOKENS = QString(R"(CREATE TABLE IF NOT EXISTS `api_tokens` (
+                                       `token` VARCHAR(300) NOT NULL UNIQUE,
+                                       `user_id` INTEGER NOT NULL,
+                                       `is_valid` INTEGER NOT NULL
+                                       FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)))");
+
 Database::Database()
 {
     mDatabase = QSqlDatabase::addDatabase("QSQLITE");
@@ -53,6 +59,7 @@ QSqlError Database::init(const QString &filename)
     bool questionExist = databaseTables.contains("question", Qt::CaseInsensitive);
     bool cipherExist = databaseTables.contains("cipher", Qt::CaseInsensitive);
     bool associationExist = databaseTables.contains("association", Qt::CaseInsensitive);
+    bool apiTokensExist = databaseTables.contains("api_tokens", Qt::CaseInsensitive);
 
     QSqlQuery query(mDatabase);
 
@@ -70,6 +77,10 @@ QSqlError Database::init(const QString &filename)
 
     if(!associationExist)
         if(!query.exec(CREATE_ASSOCIATION))
+            return query.lastError();
+
+    if(!apiTokensExist)
+        if(!query.exec(CREATE_API_TOKENS))
             return query.lastError();
 
     mDatabase.commit();
