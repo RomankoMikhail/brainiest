@@ -122,6 +122,8 @@ HttpPacket onFileSystemAccess(SocketContext &context, const HttpPacket &packet)
     return response;
 }
 
+#include "ApiToken.hpp"
+
 int main(int argc, char *argv[])
 {
     QMimeDatabase mimeDatabase;

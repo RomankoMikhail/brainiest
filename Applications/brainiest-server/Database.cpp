@@ -31,9 +31,10 @@ const auto CREATE_ASSOCIATION = QString(R"(CREATE TABLE IF NOT EXISTS `associati
                                         ))");
 
 const auto CREATE_API_TOKENS = QString(R"(CREATE TABLE IF NOT EXISTS `api_tokens` (
-                                       `token` VARCHAR(300) NOT NULL UNIQUE,
+                                       `token` VARCHAR(300) PRIMARY KEY,
                                        `user_id` INTEGER NOT NULL,
-                                       `is_valid` INTEGER NOT NULL
+                                       `is_valid` INTEGER NOT NULL,
+                                       `valid_until` INTEGER,
                                        FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)))");
 
 Database::Database()

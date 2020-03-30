@@ -1,6 +1,7 @@
 #include "Actions.hpp"
 #include "Singleton.hpp"
 #include "User.hpp"
+#include "ApiToken.hpp"
 
 QJsonObject actionRegister(const QJsonObject &request)
 {
@@ -30,7 +31,16 @@ QJsonObject actionLogin(const QJsonObject &request)
     User user = User::getByUsername(username);
 
     if (user.isValid() && user.password() == password)
-        return Action::formResponseFromCode(Action::ReturnCodeOk);
+    {
+        response = Action::formResponseFromCode(Action::ReturnCodeOk);
+
+        QDateTime until = QDateTime::currentDateTime().addSecs(24 * 60 * 60);
+
+        response["token"] = ApiToken::create(user.id(), until).token();
+        response["until"] = until.toSecsSinceEpoch();
+
+        return response;
+    }
 
     return Action::formResponseFromCode(Action::ReturnCodeError);
 }
